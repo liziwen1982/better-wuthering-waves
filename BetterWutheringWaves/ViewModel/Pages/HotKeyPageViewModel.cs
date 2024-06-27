@@ -118,6 +118,24 @@ public partial class HotKeyPageViewModel : ObservableObject, IViewModel
         );
         HotKeySettingModels.Add(bgiEnabledHotKeySettingModel);
 
+        var takeScreenshotHotKeySettingModel = new HotKeySettingModel(
+            "当前地图截图",
+            nameof(Config.HotKeyConfig.TakeScreenshotHotkey),
+            Config.HotKeyConfig.TakeScreenshotHotkey,
+            Config.HotKeyConfig.TakeScreenshotHotkeyType,
+            (_, _) => { TaskTriggerDispatcher.Instance().TakeScreenshotForMapping(); }
+        );
+        HotKeySettingModels.Add(takeScreenshotHotKeySettingModel);
+        
+        var takeMoveMapHotKeySettingModel = new HotKeySettingModel(
+            "地图移动",
+            nameof(Config.HotKeyConfig.TakeMoveMapHotkey),
+            Config.HotKeyConfig.TakeMoveMapHotkey,
+            Config.HotKeyConfig.TakeMoveMapHotkeyType,
+            (_, _) => { TaskTriggerDispatcher.Instance().TakeMoveMap(); }
+        );
+        HotKeySettingModels.Add(takeMoveMapHotKeySettingModel);
+
         // var takeScreenshotHotKeySettingModel = new HotKeySettingModel(
         //     "游戏截图（开发者）",
         //     nameof(Config.HotKeyConfig.TakeScreenshotHotkey),

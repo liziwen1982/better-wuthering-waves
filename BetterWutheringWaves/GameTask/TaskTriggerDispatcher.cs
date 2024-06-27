@@ -15,7 +15,9 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using BetterWutheringWaves.Core.Simulator;
 using Vanara.PInvoke;
+using Point = System.Drawing.Point;
 
 namespace BetterWutheringWaves.GameTask
 {
@@ -468,6 +470,65 @@ namespace BetterWutheringWaves.GameTask
             else
             {
                 _logger.LogWarning("当前不处于截图模式，无法保存截图");
+            }
+        }
+        
+        public void TakeMoveMap()
+        {
+            _logger.LogError("地图移动 X:{} Y:{}", TaskContext.Instance().Config.MappingX, TaskContext.Instance().Config.MappingY);
+            
+            var rect = SystemControl.GetWindowRect(TaskContext.Instance().GameHandle);
+            _logger.LogInformation($"地图移动...rect:{rect}");
+
+            Point middlePoint = new Point(
+                rect.X + (rect.Width / 2), // 中点的横坐标
+                rect.Y + (rect.Height / 2)  // 中点的纵坐标
+            );
+            
+            _logger.LogInformation($"地图移动...middlePoint:{middlePoint}");
+            
+            Simulation.SendInput.Mouse.MoveMouseTo(middlePoint.X * 65535 * 1d / PrimaryScreen.WorkingArea.Width, 
+                    middlePoint.Y * 65535 * 1d / PrimaryScreen.WorkingArea.Height).
+                LeftButtonDown().
+                //Sleep(50).
+                MoveMouseTo((middlePoint.X + TaskContext.Instance().Config.MappingX) * 65535 * 1d / PrimaryScreen.WorkingArea.Width, 
+                    (middlePoint.Y + TaskContext.Instance().Config.MappingX) * 65535 * 1d / PrimaryScreen.WorkingArea.Height).
+                //Sleep(1000).
+                LeftButtonUp();
+        }
+
+        public void TakeScreenshotForMapping()
+        {
+            try
+            {
+                var path = Global.Absolute($@"mapping\");
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+
+                var bitmap = GetLastCaptureBitmap();
+                var name = $@"{DateTime.Now:yyyyMMddHHmmssffff}.png";
+                var savePath = Global.Absolute($@"mapping\{name}");
+
+                if (TaskContext.Instance().Config.CommonConfig.ScreenshotUidCoverEnabled)
+                {
+                    var mat = bitmap.ToMat();
+                    var rect = TaskContext.Instance().Config.MaskWindowConfig.UidCoverRect;
+                    mat.Rectangle(rect, Scalar.White, -1);
+                    Cv2.ImWrite(savePath, mat);
+                }
+                else
+                {
+                    bitmap.Save(savePath, ImageFormat.Png);
+                }
+
+                _logger.LogInformation("截图已保存: {Name}", name);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("截图保存失败: {Message}", e.Message);
+                _logger.LogDebug("截图保存失败: {StackTrace}", e.StackTrace);
             }
         }
     }

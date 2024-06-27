@@ -46,6 +46,18 @@ public partial class AllConfig : ObservableObject
     private int _triggerInterval = 50;
 
     /// <summary>
+    ///     触发器触发频率(ms)
+    /// </summary>
+    [ObservableProperty]
+    private int _mappingX = 500;
+    
+    /// <summary>
+    ///     触发器触发频率(ms)
+    /// </summary>
+    [ObservableProperty]
+    private int _mappingY = 500;
+    
+    /// <summary>
     ///     WGC使用位图缓存
     ///     高帧率情况下，可能会导致卡顿
     ///     云鸣潮可能会出现黑屏
