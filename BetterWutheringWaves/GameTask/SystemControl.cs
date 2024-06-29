@@ -12,6 +12,8 @@ public class SystemControl
     public static nint FindGameHandle()
     {
         return FindHandleByProcessName("Client-Win64-Shipping");
+        //return FindHandleByProcessName("launcher");
+        //return FindHandleByProcessName("notepad++");
     }
 
     public static async Task<nint> StartFromLocalAsync(string path)

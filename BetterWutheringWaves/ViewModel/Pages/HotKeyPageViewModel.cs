@@ -128,7 +128,7 @@ public partial class HotKeyPageViewModel : ObservableObject, IViewModel
         HotKeySettingModels.Add(takeScreenshotHotKeySettingModel);
         
         var takeMoveMapHotKeySettingModel = new HotKeySettingModel(
-            "地图移动",
+            "移动地图",
             nameof(Config.HotKeyConfig.TakeMoveMapHotkey),
             Config.HotKeyConfig.TakeMoveMapHotkey,
             Config.HotKeyConfig.TakeMoveMapHotkeyType,

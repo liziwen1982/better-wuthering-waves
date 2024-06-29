@@ -476,6 +476,12 @@ namespace BetterWutheringWaves.GameTask
         public void TakeMoveMap()
         {
             _logger.LogError("地图移动 X:{} Y:{}", TaskContext.Instance().Config.MappingX, TaskContext.Instance().Config.MappingY);
+
+            SearialPortQueueManager spqMgr = SearialPortQueueManager.Instance;
+
+            spqMgr.KeyboadPress(4);
+            
+            return;
             
             var rect = SystemControl.GetWindowRect(TaskContext.Instance().GameHandle);
             _logger.LogInformation($"地图移动...rect:{rect}");
