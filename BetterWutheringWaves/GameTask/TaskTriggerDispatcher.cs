@@ -52,6 +52,11 @@ namespace BetterWutheringWaves.GameTask
 
         private static readonly object _bitmapLocker = new();
 
+        /// <summary>
+        /// 截图序号
+        /// </summary>
+        private int _picNum = 1;
+
         public event EventHandler UiTaskStopTickEvent;
 
         public event EventHandler UiTaskStartTickEvent;
@@ -519,6 +524,73 @@ namespace BetterWutheringWaves.GameTask
                 LeftButtonUp();
         }
 
+        // 1: 保存打上标签的图片，方便定位问题
+        private void SaveLableBitMap()
+        {
+            var bitmap = GetLastCaptureBitmap();
+            
+            int nX = TaskContext.Instance().Config.MappingX;
+            int nY = TaskContext.Instance().Config.MappingY;
+            
+            var name = $@"Lable-{nX}-{nY}-{_picNum}";
+            var savePath = Global.Absolute($@"mapping\{name}.png");
+                    
+            var mat = bitmap.ToMat();
+                    
+            // 自定义矩形区域
+            // 1600 * 900
+            int nWidth = 1600;
+            int nHeight = 900;
+            
+            Rect rect = new Rect(100, 100, nWidth - 260, nHeight - 220); // 矩形框的位置和大小
+            // 自定义颜色 (B, G, R)
+            Scalar color = new Scalar(0, 0, 255); // 绿色
+            // 绘制矩形框
+            mat.Rectangle(rect, color, thickness: 1); // thickness 表示矩形框的边框宽度
+                    
+            // 定义文本内容和位置
+            Scalar textColor = new Scalar(255, 0, 0); // 蓝色
+            // 1600 * 900
+            OpenCvSharp.Point textPosition = new OpenCvSharp.Point(nWidth / 2, nHeight / 2); // 文本的位置 (左下角)
+            // 设置字体和大小
+            HersheyFonts font = HersheyFonts.HersheySimplex;
+            double fontScale = 1.0;
+            int thickness = 2;
+            // 绘制文本
+            mat.PutText(name, textPosition, font, fontScale, textColor, thickness);
+                    
+            Cv2.ImWrite(savePath, mat);
+            
+            _logger.LogInformation("截图已保存: {Name}", savePath);
+        }
+
+        // 2: 保存裁剪后的图片，用于后续拼接
+        private void SaveCutBitmap()
+        {
+            var bitmap = GetLastCaptureBitmap();
+            
+            int nX = TaskContext.Instance().Config.MappingX;
+            int nY = TaskContext.Instance().Config.MappingY;
+            
+            var name = $@"{nX}-{nY}-{_picNum}";
+            var savePath = Global.Absolute($@"mapping\{name}.png");
+            
+            var mat = bitmap.ToMat();
+                    
+            // 自定义矩形区域
+            // 1600 * 900
+            int nWidth = 1600;
+            int nHeight = 900;
+            
+            // 自定义矩形区域
+            Rect rect = new Rect(100, 100, nWidth - 260, nHeight - 220); // 矩形框的位置和大小
+
+            Mat croppedImage = new Mat(mat, rect);
+            
+            Cv2.ImWrite(savePath, croppedImage); 
+            _logger.LogInformation("截图已保存: {Name}", savePath);
+        }
+
         public void TakeScreenshotForMapping()
         {
             try
@@ -542,46 +614,14 @@ namespace BetterWutheringWaves.GameTask
                 }
                 else
                 {
-                    //bitmap.Save(savePath, ImageFormat.Png);
+                    // 1: 保存打上标签的图片，方便定位问题
+                    SaveLableBitMap();
                     
-                    /*
-                    var mat = bitmap.ToMat();
-                    var rect = TaskContext.Instance().Config.MaskWindowConfig.UidCoverRect;
-                    mat.Rectangle(rect, Scalar.White, -1);
-                    Cv2.ImWrite(savePath, mat);
-                    */
-                    
-                    var mat = bitmap.ToMat();
-                    
-                    // 自定义矩形区域
-                    Rect rect = new Rect(100, 100, 1000, 1000); // 矩形框的位置和大小
+                    // 2: 保存裁剪后的图片，用于后续拼接
+                    SaveCutBitmap();
 
-                    // 自定义颜色 (B, G, R)
-                    Scalar color = new Scalar(0, 255, 0); // 绿色
-
-                    // 绘制矩形框
-                    mat.Rectangle(rect, color, thickness: 1); // thickness 表示矩形框的边框宽度
-
-                    // 保存处理后的 Mat 为图像文件
-                    //string savePath = "output.jpg";
-                    
-                    // 定义文本内容和位置
-                    Scalar textColor = new Scalar(255, 0, 0); // 蓝色
-                    string text = "Hello, OpenCvSharp!";
-                    OpenCvSharp.Point textPosition = new OpenCvSharp.Point(90, 90); // 文本的位置 (左下角)
-
-                    // 设置字体和大小
-                    HersheyFonts font = HersheyFonts.HersheySimplex;
-                    double fontScale = 1.0;
-                    int thickness = 2;
-
-                    // 绘制文本
-                    mat.PutText(text, textPosition, font, fontScale, textColor, thickness);
-                    
-                    Cv2.ImWrite(savePath, mat);
+                    _picNum++;
                 }
-
-                _logger.LogInformation("截图已保存: {Name}", name);
             }
             catch (Exception e)
             {
