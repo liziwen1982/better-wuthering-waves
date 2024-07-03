@@ -108,12 +108,26 @@ public partial class HotKeyConfig : ObservableObject
     [ObservableProperty]
     private string _takeScreenshotHotkeyType = HotKeyTypeEnum.KeyboardMonitor.ToString();
 
-    // 地图移动
+    // 地图移动X
     [ObservableProperty]
-    private string _takeMoveMapHotkey = "";
+    private string _takeMoveMapXHotkey = "";
     
     [ObservableProperty]
-    private string _takeMoveMapHotkeyType = HotKeyTypeEnum.KeyboardMonitor.ToString();
+    private string _takeMoveMapXHotkeyType = HotKeyTypeEnum.KeyboardMonitor.ToString();
+    
+    // 地图移动Y
+    [ObservableProperty]
+    private string _takeMoveMapYHotkey = "";
+    
+    [ObservableProperty]
+    private string _takeMoveMapYHotkeyType = HotKeyTypeEnum.KeyboardMonitor.ToString();
+    
+    // 合并截图
+    [ObservableProperty]
+    private string _mergeMapsHotkey = "";
+    
+    [ObservableProperty]
+    private string _mergeMapsHotkeyType = HotKeyTypeEnum.KeyboardMonitor.ToString();
     
     [ObservableProperty]
     private string _turnAroundHotkey = "";

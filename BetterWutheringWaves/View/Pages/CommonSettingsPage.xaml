@@ -328,6 +328,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -364,9 +366,33 @@
                     <ui:TextBlock Grid.Row="3"
                                   Grid.Column="0"
                                   Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                                  Text="移动地图"
+                                  Text="移动地图X"
                                   TextWrapping="Wrap" />
                     <ui:Button Grid.Row="3"
+                               Grid.RowSpan="1"
+                               Grid.Column="2"
+                               MinWidth="90"
+                               Margin="0,10,36,0"
+                               Command="{Binding GoToHotKeyPageCommand}"
+                               Content="绑定快捷键" />
+                    <ui:TextBlock Grid.Row="4"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="移动地图Y"
+                                  TextWrapping="Wrap" />
+                    <ui:Button Grid.Row="4"
+                               Grid.RowSpan="1"
+                               Grid.Column="2"
+                               MinWidth="90"
+                               Margin="0,10,36,0"
+                               Command="{Binding GoToHotKeyPageCommand}"
+                               Content="绑定快捷键" />
+                    <ui:TextBlock Grid.Row="5"
+                                  Grid.Column="0"
+                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                  Text="合并截图"
+                                  TextWrapping="Wrap" />
+                    <ui:Button Grid.Row="5"
                                Grid.RowSpan="1"
                                Grid.Column="2"
                                MinWidth="90"

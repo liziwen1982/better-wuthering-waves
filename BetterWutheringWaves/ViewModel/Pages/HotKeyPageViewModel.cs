@@ -127,15 +127,32 @@ public partial class HotKeyPageViewModel : ObservableObject, IViewModel
         );
         HotKeySettingModels.Add(takeScreenshotHotKeySettingModel);
         
-        var takeMoveMapHotKeySettingModel = new HotKeySettingModel(
-            "移动地图",
-            nameof(Config.HotKeyConfig.TakeMoveMapHotkey),
-            Config.HotKeyConfig.TakeMoveMapHotkey,
-            Config.HotKeyConfig.TakeMoveMapHotkeyType,
-            (_, _) => { TaskTriggerDispatcher.Instance().TakeMoveMap(); }
+        var takeMoveMapXHotKeySettingModel = new HotKeySettingModel(
+            "移动地图X",
+            nameof(Config.HotKeyConfig.TakeMoveMapXHotkey),
+            Config.HotKeyConfig.TakeMoveMapXHotkey,
+            Config.HotKeyConfig.TakeMoveMapXHotkeyType,
+            (_, _) => { TaskTriggerDispatcher.Instance().TakeMoveMapX(); }
         );
-        HotKeySettingModels.Add(takeMoveMapHotKeySettingModel);
+        HotKeySettingModels.Add(takeMoveMapXHotKeySettingModel);
+        var takeMoveMapYHotKeySettingModel = new HotKeySettingModel(
+            "移动地图Y",
+            nameof(Config.HotKeyConfig.TakeMoveMapYHotkey),
+            Config.HotKeyConfig.TakeMoveMapYHotkey,
+            Config.HotKeyConfig.TakeMoveMapYHotkeyType,
+            (_, _) => { TaskTriggerDispatcher.Instance().TakeMoveMapY(); }
+        );
+        HotKeySettingModels.Add(takeMoveMapYHotKeySettingModel);
 
+        var takeMergeMapsHotKeySettingModel = new HotKeySettingModel(
+            "合并截图",
+            nameof(Config.HotKeyConfig.MergeMapsHotkey),
+            Config.HotKeyConfig.MergeMapsHotkey,
+            Config.HotKeyConfig.MergeMapsHotkeyType,
+            (_, _) => { TaskTriggerDispatcher.Instance().MergeMaps(); }
+        );
+        HotKeySettingModels.Add(takeMergeMapsHotKeySettingModel);
+        
         // var takeScreenshotHotKeySettingModel = new HotKeySettingModel(
         //     "游戏截图（开发者）",
         //     nameof(Config.HotKeyConfig.TakeScreenshotHotkey),

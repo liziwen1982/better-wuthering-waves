@@ -39,6 +39,8 @@
 	<ItemGroup>
 		<PackageReference Include="AvalonEdit" Version="6.3.0.90" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="Emgu.CV" Version="4.9.0.5494" />
+		<PackageReference Include="Emgu.CV.runtime.windows" Version="4.9.0.5494" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />

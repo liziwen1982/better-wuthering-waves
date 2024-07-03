@@ -14,10 +14,15 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using BetterWutheringWaves.Core.Simulator;
 using Vanara.PInvoke;
 using Point = System.Drawing.Point;
+using Emgu.CV;
+using Emgu.CV.Stitching;
+using Emgu.CV.Structure;
+using Emgu.CV.Util;
 
 namespace BetterWutheringWaves.GameTask
 {
@@ -477,12 +482,81 @@ namespace BetterWutheringWaves.GameTask
                 _logger.LogWarning("当前不处于截图模式，无法保存截图");
             }
         }
+
+        public void MergeMaps()
+        {
+            string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\mapping\\";
+            
+            var  files = Directory.GetFiles(currentPath, "*.png");
+
+            List<string> imageFiles = new List<string>{};
+
+            foreach (var file in files)
+            {
+                if (-1 == file.IndexOf("Lable"))
+                {
+                    imageFiles.Add(file);
+                    
+                    _logger.LogError("待合并截图 file:{}", file);
+                }
+            }
+            
+            _logger.LogError("合并截图 imagePaths:{}", imageFiles.Count);
+
+            try
+            {
+                // 加载所有图片
+                var images = new Emgu.CV.Util.VectorOfMat();
+                foreach (var path in imageFiles)
+                {
+                    Emgu.CV.Mat img = CvInvoke.Imread(path, Emgu.CV.CvEnum.ImreadModes.Color);
+                    if (img.IsEmpty)
+                    {
+                        throw new Exception($"无法加载图片: {path}");
+                    }
+                    images.Push(img);
+                }
+
+                // 创建拼接器
+                using (Emgu.CV.Stitching.Stitcher stitcher = new Emgu.CV.Stitching.Stitcher(Emgu.CV.Stitching.Stitcher.Mode.Panorama))
+                {
+                    Emgu.CV.Mat result = new Emgu.CV.Mat();
+
+                    // 拼接图片
+                    Emgu.CV.Stitching.Stitcher.Status status = stitcher.Stitch(images, result);
+
+                    if (status == Emgu.CV.Stitching.Stitcher.Status.Ok)
+                    {
+                        // 保存结果
+                        string resultPath = currentPath + "\\output.jpg";
+                        CvInvoke.Imwrite(resultPath, result);
+                        Console.WriteLine($"拼接成功，结果保存到: {resultPath}");
+
+                        // 显示结果
+                        CvInvoke.Imshow("Stitched Image", result);
+                        CvInvoke.WaitKey(0);
+                    }
+                    else
+                    {
+                        throw new Exception($"拼接失败，状态: {status}");
+                    }
+                }
+            }
+            catch (FileNotFoundException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"发生错误: {ex.Message}");
+            }
+        }
         
-        public void TakeMoveMap()
+        public void TakeMoveMapX()
         {
             int nX = TaskContext.Instance().Config.MappingX;
             int nY = TaskContext.Instance().Config.MappingY;
-            _logger.LogError("地图移动 X:{} Y:{}", nX, nY);
+            _logger.LogError("地图移动 X:{}", nX);
 
             SearialPortQueueManager spqMgr = SearialPortQueueManager.Instance;
 
@@ -493,37 +567,25 @@ namespace BetterWutheringWaves.GameTask
                 
             }
 
-            bKey = 0x1A;
+            return;
+        }
+        public void TakeMoveMapY()
+        {
+            int nX = TaskContext.Instance().Config.MappingX;
+            int nY = TaskContext.Instance().Config.MappingY;
+            _logger.LogError("地图移动 Y:{}", nY);
+
+            SearialPortQueueManager spqMgr = SearialPortQueueManager.Instance;
+
+            byte bKey = 0x1A;
             //bKey = 0x0A;
             for (int j = 0; j < nY; j++)
             {
                 spqMgr.KeyboadPress(bKey);
             }
-            
-            //spqMgr.KeyboadPress(4);
-            
             return;
-            
-            var rect = SystemControl.GetWindowRect(TaskContext.Instance().GameHandle);
-            _logger.LogInformation($"地图移动...rect:{rect}");
-
-            Point middlePoint = new Point(
-                rect.X + (rect.Width / 2), // 中点的横坐标
-                rect.Y + (rect.Height / 2)  // 中点的纵坐标
-            );
-            
-            _logger.LogInformation($"地图移动...middlePoint:{middlePoint}");
-            
-            Simulation.SendInput.Mouse.MoveMouseTo(middlePoint.X * 65535 * 1d / PrimaryScreen.WorkingArea.Width, 
-                    middlePoint.Y * 65535 * 1d / PrimaryScreen.WorkingArea.Height).
-                LeftButtonDown().
-                //Sleep(50).
-                MoveMouseTo((middlePoint.X + TaskContext.Instance().Config.MappingX) * 65535 * 1d / PrimaryScreen.WorkingArea.Width, 
-                    (middlePoint.Y + TaskContext.Instance().Config.MappingX) * 65535 * 1d / PrimaryScreen.WorkingArea.Height).
-                //Sleep(1000).
-                LeftButtonUp();
         }
-
+        
         // 1: 保存打上标签的图片，方便定位问题
         private void SaveLableBitMap()
         {
@@ -542,7 +604,7 @@ namespace BetterWutheringWaves.GameTask
             int nWidth = 1600;
             int nHeight = 900;
             
-            Rect rect = new Rect(100, 100, nWidth - 260, nHeight - 220); // 矩形框的位置和大小
+            Rect rect = new Rect(100, 100, nWidth - 260, nHeight - 260); // 矩形框的位置和大小
             // 自定义颜色 (B, G, R)
             Scalar color = new Scalar(0, 0, 255); // 绿色
             // 绘制矩形框
@@ -583,9 +645,9 @@ namespace BetterWutheringWaves.GameTask
             int nHeight = 900;
             
             // 自定义矩形区域
-            Rect rect = new Rect(100, 100, nWidth - 260, nHeight - 220); // 矩形框的位置和大小
+            Rect rect = new Rect(100, 100, nWidth - 260, nHeight - 260); // 矩形框的位置和大小
 
-            Mat croppedImage = new Mat(mat, rect);
+            OpenCvSharp.Mat croppedImage = new OpenCvSharp.Mat(mat, rect);
             
             Cv2.ImWrite(savePath, croppedImage); 
             _logger.LogInformation("截图已保存: {Name}", savePath);
