@@ -475,11 +475,27 @@ namespace BetterWutheringWaves.GameTask
         
         public void TakeMoveMap()
         {
-            _logger.LogError("地图移动 X:{} Y:{}", TaskContext.Instance().Config.MappingX, TaskContext.Instance().Config.MappingY);
+            int nX = TaskContext.Instance().Config.MappingX;
+            int nY = TaskContext.Instance().Config.MappingY;
+            _logger.LogError("地图移动 X:{} Y:{}", nX, nY);
 
             SearialPortQueueManager spqMgr = SearialPortQueueManager.Instance;
 
-            spqMgr.KeyboadPress(4);
+            byte bKey = 0x04;
+            for (int i = 0; i < nX; i++)
+            {
+                spqMgr.KeyboadPress(bKey);
+                
+            }
+
+            bKey = 0x1A;
+            //bKey = 0x0A;
+            for (int j = 0; j < nY; j++)
+            {
+                spqMgr.KeyboadPress(bKey);
+            }
+            
+            //spqMgr.KeyboadPress(4);
             
             return;
             
@@ -526,7 +542,43 @@ namespace BetterWutheringWaves.GameTask
                 }
                 else
                 {
-                    bitmap.Save(savePath, ImageFormat.Png);
+                    //bitmap.Save(savePath, ImageFormat.Png);
+                    
+                    /*
+                    var mat = bitmap.ToMat();
+                    var rect = TaskContext.Instance().Config.MaskWindowConfig.UidCoverRect;
+                    mat.Rectangle(rect, Scalar.White, -1);
+                    Cv2.ImWrite(savePath, mat);
+                    */
+                    
+                    var mat = bitmap.ToMat();
+                    
+                    // 自定义矩形区域
+                    Rect rect = new Rect(100, 100, 1000, 1000); // 矩形框的位置和大小
+
+                    // 自定义颜色 (B, G, R)
+                    Scalar color = new Scalar(0, 255, 0); // 绿色
+
+                    // 绘制矩形框
+                    mat.Rectangle(rect, color, thickness: 1); // thickness 表示矩形框的边框宽度
+
+                    // 保存处理后的 Mat 为图像文件
+                    //string savePath = "output.jpg";
+                    
+                    // 定义文本内容和位置
+                    Scalar textColor = new Scalar(255, 0, 0); // 蓝色
+                    string text = "Hello, OpenCvSharp!";
+                    OpenCvSharp.Point textPosition = new OpenCvSharp.Point(90, 90); // 文本的位置 (左下角)
+
+                    // 设置字体和大小
+                    HersheyFonts font = HersheyFonts.HersheySimplex;
+                    double fontScale = 1.0;
+                    int thickness = 2;
+
+                    // 绘制文本
+                    mat.PutText(text, textPosition, font, fontScale, textColor, thickness);
+                    
+                    Cv2.ImWrite(savePath, mat);
                 }
 
                 _logger.LogInformation("截图已保存: {Name}", name);

@@ -45,6 +45,8 @@ public class SearialPortQueueManager
     {
         _logger.LogInformation("WorkFunc ...\n");
         
+        //Random random = new Random();
+        
         while (true)
         {
             try
@@ -80,83 +82,60 @@ public class SearialPortQueueManager
                 Console.WriteLine(e);
                 throw;
             }
-
-                
-            Thread.Sleep(10);
         
             QueueItem? qItem = ((SearialPortQueueManager)o!)?.Dequeue();
 
             if (null == qItem)
             {
-                Thread.Sleep(20);
+                Thread.Sleep(2); // 避免空转时cpu过高
                 continue;
             }
             
-            if(null != qItem)
-                _logger.LogInformation("RetryCount:{}", qItem?.RetryCount);
+            //if(null != qItem)
+            //    _logger.LogInformation("RetryCount:{}", qItem?.RetryCount);
 
             try
             {
                 byte[] CommonData = qItem.CommonData;
-                _logger.LogInformation("WorkFunc SerialPort Write {} ...\n", CommonData);
+                _logger.LogInformation("{}-{} - WorkFunc SerialPort Write {} ...\n", DateTime.Now, DateTime.Now.Millisecond, CommonData);
                 _serialPortSimulator.GetSerialPort().Write(CommonData, 0, CommonData.Length);
-                if(qItem.Delay > 0)
-                    Thread.Sleep(qItem.Delay);
+
+                
+                //阻塞式接受
+                if (_serialPortSimulator.GetSerialPort().BytesToRead > 0 )
+                {
+                    byte[] _readb = new byte[_serialPortSimulator.GetSerialPort().BytesToRead];
+                    int nRet = _serialPortSimulator.GetSerialPort().Read(_readb, 0, _serialPortSimulator.GetSerialPort().BytesToRead);
+                    _logger.LogInformation("_readb {}", _readb);
+                }
+                
+                //Thread.Sleep(random.Next(50, 101)); 
+                //Thread.Sleep(500);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
-            /*
-            if (nTryTest > 0)
-            {
-                nTryTest--;
-
-                try
-                {
-                    // a 松开
-                    byte[] keysup = { 0x57, 0xAB, 0x01, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00 };
-                    sp.Write(keysup, 0, keysup.Length);
             
-                    Thread.Sleep(1000);
-                    
-                    //阻塞式接受
-                    if (sp.BytesToRead > 0 )
-                    {
-                        byte[] _readb = new byte[sp.BytesToRead];
-                        int nRet = sp.Read(_readb, 0, sp.BytesToRead);
-                        _logger.LogInformation("_readb 按下:{}", _readb);
-                    }
-            
-                    // a 松开
-                    keysup = new byte[] { 0x57, 0xAB, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-                    sp.Write(keysup, 0, keysup.Length);
-            
-                    Thread.Sleep(1000);
-                    
-                    //阻塞式接受
-                    if (sp.BytesToRead > 0 )
-                    {
-                        byte[] _readb = new byte[sp.BytesToRead];
-                        int nRet = sp.Read(_readb, 0, sp.BytesToRead);
-                        _logger.LogInformation("_readb 松开:{}", _readb);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-            }
-            */
+            if(qItem.Delay > 0)
+                Thread.Sleep(qItem.Delay);
         }
     }
     
     // 插入
     private void Enqueue(QueueItem item)
     {
-        _logger.LogInformation("Enqueue 入队:{}, _queue.Count:{}", item.CommonData, _queue.Count);
+        //_logger.LogInformation("Enqueue 入队:{}, _queue.Count:{}", item.CommonData, _queue.Count);
+
+        // 队列为空时，发送一个松开指令
+        if (_queue.IsEmpty)
+        {
+            byte[] keysup = { 0x57, 0xAB, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            QueueItem _item = new QueueItem(keysup);
+            _queue.Enqueue(_item);
+            _queue.Enqueue(_item);
+        }
         _queue.Enqueue(item);
     }
 
@@ -168,7 +147,7 @@ public class SearialPortQueueManager
         if (_queue.Count > 0)
         {
             _queue.TryDequeue(out item);
-            _logger.LogInformation("Dequeue 出队:{} _queue.Count:{}", item.CommonData, _queue.Count);
+            //_logger.LogInformation("{}, Dequeue 出队:{} _queue.Count:{}", DateTime.Now,  item.CommonData, _queue.Count);
         }
         
         return item;
@@ -176,29 +155,31 @@ public class SearialPortQueueManager
 
     public int KeyboadPress(byte bKey, int nFunKey = 0)
     {
-        _logger.LogInformation("KeyboadPress {} ...\n", bKey);
+        //_logger.LogInformation("KeyboadPress {} ...\n", bKey);
         
         // bKey 按下
         byte[] keysup = { 0x57, 0xAB, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         keysup[5] = bKey;
         
-        _logger.LogInformation("KeyboadPress down {} ...\n", keysup);
+        //_logger.LogInformation("KeyboadPress down {} ...\n", keysup);
         
         int delay = 0;
         int retryCount = 0;
+        //delay = 10;
         QueueItem item = new QueueItem(keysup, delay, retryCount);
         
         Enqueue(item);
         
         // 设备要求每条指令间隔2ms以上
-        Thread.Sleep(20);
+        //Thread.Sleep(10);
         
         // bKey 松开
         keysup = new byte []{ 0x57, 0xAB, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         //sp.Write(keysup, 0, keysup.Length);
+        //delay = 0;
         item = new QueueItem(keysup, delay, retryCount);
         
-        _logger.LogInformation("KeyboadPress up {} ...\n", keysup);
+        //_logger.LogInformation("KeyboadPress up {} ...\n", keysup);
         
         Enqueue(item);
         
