@@ -344,7 +344,7 @@
                     <ui:TextBlock Grid.Row="1"
                         Grid.Column="0"
                         Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                        Text="截图前调整地图位置:X轴（水平）"
+                        Text="截图前调整地图位置:X轴（水平,-:向左,+:向右）"
                         TextWrapping="Wrap" />
                     <ui:TextBox Grid.Row="1"
                                 Grid.RowSpan="1"
@@ -355,7 +355,7 @@
                     <ui:TextBlock Grid.Row="2"
                         Grid.Column="0"
                         Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
-                        Text="截图前调整地图位置:Y轴（垂直）"
+                        Text="截图前调整地图位置:Y轴（垂直,-:向下,+:向上）"
                         TextWrapping="Wrap" />
                     <ui:TextBox Grid.Row="2"
                             Grid.RowSpan="1"

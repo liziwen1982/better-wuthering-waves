@@ -60,7 +60,7 @@ namespace BetterWutheringWaves.GameTask
         /// <summary>
         /// 截图序号
         /// </summary>
-        private int _picNum = 1;
+        private int _picNum = 0; // 0 代表第一张截图,金州原点
 
         public event EventHandler UiTaskStopTickEvent;
 
@@ -555,12 +555,17 @@ namespace BetterWutheringWaves.GameTask
         public void TakeMoveMapX()
         {
             int nX = TaskContext.Instance().Config.MappingX;
-            int nY = TaskContext.Instance().Config.MappingY;
-            _logger.LogError("地图移动 X:{}", nX);
+            _logger.LogError("地图移动 X:{}=={}", nX<0?"向左":"向右", nX);
 
             SearialPortQueueManager spqMgr = SearialPortQueueManager.Instance;
 
-            byte bKey = 0x04;
+            byte bKey = 0x07; // d
+            if (nX < 0)
+            {
+                bKey = 0x04; // a
+                nX = -nX;
+            }
+            
             for (int i = 0; i < nX; i++)
             {
                 spqMgr.KeyboadPress(bKey);
@@ -571,14 +576,18 @@ namespace BetterWutheringWaves.GameTask
         }
         public void TakeMoveMapY()
         {
-            int nX = TaskContext.Instance().Config.MappingX;
             int nY = TaskContext.Instance().Config.MappingY;
-            _logger.LogError("地图移动 Y:{}", nY);
+            _logger.LogError("地图移动 Y:{}=={}", nY<0?"向下":"向上", nY);
 
             SearialPortQueueManager spqMgr = SearialPortQueueManager.Instance;
 
-            byte bKey = 0x1A;
-            //bKey = 0x0A;
+            byte bKey = 0x1A; // w
+            if (nY < 0)
+            {
+                bKey = 0x16; // s
+                nY = -nY;
+            }
+            
             for (int j = 0; j < nY; j++)
             {
                 spqMgr.KeyboadPress(bKey);
@@ -594,7 +603,7 @@ namespace BetterWutheringWaves.GameTask
             int nX = TaskContext.Instance().Config.MappingX;
             int nY = TaskContext.Instance().Config.MappingY;
             
-            var name = $@"Lable-{nX}-{nY}-{_picNum}";
+            var name = $@"Lable={nX}={nY}={_picNum}";
             var savePath = Global.Absolute($@"mapping\{name}.png");
                     
             var mat = bitmap.ToMat();
@@ -604,7 +613,7 @@ namespace BetterWutheringWaves.GameTask
             int nWidth = 1600;
             int nHeight = 900;
             
-            Rect rect = new Rect(100, 100, nWidth - 260, nHeight - 260); // 矩形框的位置和大小
+            Rect rect = new Rect(160, 160, nWidth - 320, nHeight - 320); // 矩形框的位置和大小
             // 自定义颜色 (B, G, R)
             Scalar color = new Scalar(0, 0, 255); // 绿色
             // 绘制矩形框
@@ -634,7 +643,7 @@ namespace BetterWutheringWaves.GameTask
             int nX = TaskContext.Instance().Config.MappingX;
             int nY = TaskContext.Instance().Config.MappingY;
             
-            var name = $@"{nX}-{nY}-{_picNum}";
+            var name = $@"{nX}={nY}={_picNum}";
             var savePath = Global.Absolute($@"mapping\{name}.png");
             
             var mat = bitmap.ToMat();
@@ -645,9 +654,23 @@ namespace BetterWutheringWaves.GameTask
             int nHeight = 900;
             
             // 自定义矩形区域
-            Rect rect = new Rect(100, 100, nWidth - 260, nHeight - 260); // 矩形框的位置和大小
+            Rect rect = new Rect(160, 160, nWidth - 320, nHeight - 320); // 矩形框的位置和大小
 
             OpenCvSharp.Mat croppedImage = new OpenCvSharp.Mat(mat, rect);
+            
+            // 增加图片编号，临时 TODO start
+            // 定义文本内容和位置
+            Scalar textColor = new Scalar(255, 0, 0); // 蓝色
+            // 1600 * 900
+            OpenCvSharp.Point textPosition = new OpenCvSharp.Point((nWidth - 320) / 2, (nHeight - 320) / 2); // 文本的位置 (左下角)
+            // 设置字体和大小
+            HersheyFonts font = HersheyFonts.HersheySimplex;
+            double fontScale = 1.0;
+            int thickness = 2;
+            
+            // 绘制文本
+            croppedImage.PutText(_picNum.ToString(), textPosition, font, fontScale, textColor, thickness);
+            // 增加图片编号，临时 TODO end
             
             Cv2.ImWrite(savePath, croppedImage); 
             _logger.LogInformation("截图已保存: {Name}", savePath);
